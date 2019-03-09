@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../css/api.css" />
+    <link rel="stylesheet" type="text/css" href="../../css/jq22.css" />
+    <link rel="stylesheet" type="text/css" href="../../css/aui.css" />
+    <style type="text/css">
+        body {
+            height: 620px;
+        }
+
+        .front {
+            width: 300px;
+            margin: 0px 32px 45px 32px;
+            background-color: #f0f0f0;
+            color: #666;
+            text-align: center;
+            padding: 3px;
+            border-radius: 5px;
+        }
+
+        .booking_area {
+            /*float: right;
+            position: relative;
+            width: 200px;*/
+            height: 380px;
+        }
+
+        .booking_area h3 {
+            margin: 5px 5px 0 0;
+            font-size: 16px;
+        }
+
+        .booking_area p {
+            line-height: 26px;
+            font-size: 16px;
+            color: #999
+        }
+
+        .booking_area p span {
+            color: #666
+        }
+
+        div.seatCharts-cell {
+            color: #182C4E;
+            height: 25px;
+            width: 25px;
+            line-height: 25px;
+            margin: 3px;
+            float: left;
+            text-align: center;
+            outline: none;
+            font-size: 13px;
+        }
+
+        div.seatCharts-seat {
+            color: #fff;
+            cursor: pointer;
+            -webkit-border-radius: 5px;
+            -moz-border-radius: 5px;
+            border-radius: 5px;
+        }
+
+        div.seatCharts-row {
+            height: 35px;
+        }
+
+        div.seatCharts-seat.available {
+            background-color: #B9DEA0;
+        }
+
+        div.seatCharts-seat.focused {
+            background-color: #76B474;
+            border: none;
+        }
+
+        div.seatCharts-seat.selected {
+            background-color: #E6CAC4;
+        }
+
+        div.seatCharts-seat.unavailable {
+            background-color: #472B34;
+            cursor: not-allowed;
+        }
+
+        div.seatCharts-container {
+            border-right: 1px dotted #adadad;
+            width: 360px;
+            padding: 5px;
+            float: left;
+        }
+
+        div.seatCharts-legend {
+            padding-left: 0px;
+            position: absolute;
+            bottom: 16px;
+        }
+
+        ul.seatCharts-legendList {
+            padding-left: 0px;
+        }
+
+        .seatCharts-legendItem {
+            float: left;
+            width: 90px;
+            margin-top: 10px;
+            line-height: 2;
+        }
+
+        span.seatCharts-legendDescription {
+            margin-left: 5px;
+            line-height: 30px;
+        }
+
+        .checkout-button {
+            display: block;
+            width: 80px;
+            height: 24px;
+            line-height: 20px;
+            margin: 10px auto;
+            border: 1px solid #999;
+            font-size: 14px;
+            cursor: pointer
+        }
+
+        #seats_chose {
+            max-height: 150px;
+            overflow-y: auto;
+            overflow-x: none;
+            width: 200px;
+        }
+
+        #seats_chose li {
+            float: left;
+            width: 72px;
+            height: 26px;
+            line-height: 26px;
+            border: 1px solid #d3d3d3;
+            background: #f7f7f7;
+            margin: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center
+        }
+
+        .booking_areas {
+            margin-left: 250px;
+        }
+    </style>
+</head>
+<header class="aui-bar aui-bar-nav" id="aui-header">
+    <a class="aui-btn aui-pull-left" tapmode onclick="goBack()">
+        <span class="aui-iconfont aui-icon-left"></span>
+    </a>
+    <div class="aui-title">选座页面</div>
+    <a class="aui-btn aui-pull-right">
+        <span class="aui-iconfont aui-icon-plus"></span>
+    </a>
+</header>
+
+<body>
+    <div id="seat_area">
+        <div class="front">屏幕</div>
+        <div id="legend"></div>
+    </div>
+    <div class="booking_areas">
+        <p>总价：<b>￥<span id="total_price">0</span></b></p>
+        <input type="button" class="btn" value="确定购买" onclick="pay()" id="buy" />
+    </div>
+    <script src="http://www.jq22.com/jquery/1.9.1/jquery.min.js"></script>
+    <script type="text/javascript" src="../../script/api.js"></script>
+    <script type="text/javascript" src="../../script/jquery.seat-charts.min.js"></script>
+    <script type="text/javascript">
+        //初始化数据
+        var rows = [];
+        var labels = [];
+        var price; //电影票价
+        var TicketObj = {}
+
+        function InitHall() {
+            var model = api.require('model');
+            model.config({
+                appKey: 'FB02A2AA-D95A-6012-8918-0CBFF67EB6DD',
+                host: 'https://d.apicloud.com'
+            });
+
+            var query = api.require('query');
+            query.createQuery(
+                function(ret, err) {
+                    query.whereEqual({
+                        qid: ret.qid,
+                        column: 'id',
+                        value: api.pageParam.watchId
+                    });
+                    model.findAll({
+                        class: 'Schedule',
+                        qid: ret.qid
+                    }, function(ret, err) {
+                        alert('当前放映厅:' + ret[0].cinema_name + " " + ret[0].hall_index + '号厅');
+                        TicketObj.singlePrice = ret[0].price;
+                        TicketObj.surePrice = ret[0].sure_price;
+                        price = TicketObj.singlePrice;
+                    });
+                })
+        }
+
+        apiready = function() {
+            InitHall();
+            $(document).ready(function() {
+                var $cart = $('#seats_chose'), //座位区
+                    $tickects_num = $('#tickects_num'), //票数
+                    $total_price = $('#total_price'); //票价总额
+                var sc = $('#seat_area').seatCharts({
+                    map: [ //座位结构图 a 代表座位; 下划线 "_" 代表过道
+                        'cccccccccc',
+                        'cccccccccc',
+                        '__________',
+                        'cccccccc__',
+                        'cccccccccc',
+                        'cccccccccc',
+                        'cccccccccc',
+                        'cccccccccc',
+                        'cccccccccc',
+                        'cc__cc__cc'
+                    ],
+                    naming: { //设置行列等信息
+                        top: false, //不显示顶部横坐标（行）
+                        getLabel: function(character, row, column) { //返回座位信息
+                            return column;
+                        }
+                    },
+                    legend: { //定义图例
+                        node: $('#legend'),
+                        items: [
+                            ['c', 'available', '可选座'],
+                            ['c', 'unavailable', '已售出']
+                        ]
+                    },
+                    click: function() {
+                        if (this.status() == 'available') { //若为可选座状态，添加座位
+                            //alert('被选中了')
+                            $('<li>' + (this.settings.row + 1) + '排' + this.settings.label + '座</li>')
+                                .attr('id', 'cart-item-' + this.settings.id)
+                                .data('seatId', this.settings.id)
+                                .appendTo($cart);
+                            rows.push(this.settings.row + 1);
+                            labels.push(this.settings.label);
+                            $tickects_num.text(sc.find('selected').length + 1); //统计选票数量
+                            $total_price.text(getTotalPrice(sc) + price); //计算票价总金
+                            return 'selected';
+                        } else if (this.status() == 'selected') { //若为选中状态
+                            $tickects_num.text(sc.find('selected').length - 1); //更新票数量
+                            $total_price.text(getTotalPrice(sc) - price); //更新票价总金额
+                            $('#cart-item-' + this.settings.id).remove(); //删除已预订座位
+                            rows.pop(this.settings.row + 1);
+                            labels.pop(this.settings.label);
+                            return 'available';
+                        } else if (this.status() == 'unavailable') { //若为已售出状态
+                            return 'unavailable';
+                        } else {
+                            return this.style();
+                        }
+                    }
+                });
+
+                //设置已售出的座位
+                sc.get(['1_3', '1_4', '4_4', '4_5', '4_6', '4_7', '4_8']).status('unavailable');
+            });
+
+            function getTotalPrice(sc) { //计算票价总额
+                var total = 0;
+                sc.find('selected').each(function() {
+                    total += price;
+                });
+                return total;
+            }
+        }
+
+        //生成Ticket数据，插入数据库中的"Ticket"表(insert操作)
+        function pay() {
+            alert('另付观影保险费 ' + TicketObj.surePrice * rows.length + '元');
+            TicketObj.rows = rows;
+            TicketObj.labels = labels;
+            TicketObj.Consumer_id = $api.getStorage('currentUser').userId
+            TicketObj.Schedule_id = api.pageParam.watchId;
+            TicketObj.statue = [];
+            for (var i = 0; i < rows.length; i++) {
+                TicketObj.statue.push('未观看');
+            }
+            TicketObj.chairs = [];
+            for (var i = 0; i < TicketObj.rows.length; i++) {
+                var chair = {};
+                chair.row = TicketObj.rows[i];
+                chair.label = TicketObj.labels[i];
+                chair.statue = '未观看';
+                TicketObj.chairs.push(chair);
+            }
+
+            var model = api.require('model');
+            model.insert({
+                class: 'Ticket',
+                value: {
+                    ScheduleId: TicketObj.Schedule_id,
+                    userId: TicketObj.Consumer_id,
+                    //chairs放置用户本次购买的座位
+                    chairs: TicketObj.chairs,
+                    //transfer_chairs用于负责供用户转让的座位
+                    transfer_chairs: TicketObj.chairs,
+                    //transfering_chairs用于放置处于转让状态的座位
+                    transfering_chairs: [],
+                }
+            }, function(ret, err) {
+                if (ret) {
+
+
+
+
+                    var query = api.require('query');
+                    query.createQuery(
+                        function(ret, err) {
+                            query.whereEqual({
+                                qid: ret.qid,
+                                column: 'id',
+                                value: $api.getStorage('currentUser').userId
+                            });
+                            model.findAll({
+                                class: 'user',
+                                qid: ret.qid
+                            }, function(ret, err) {
+                                if (ret) {
+                                    var moneynow = parseInt(ret[0].money) - parseInt(TicketObj.surePrice * rows.length) - parseInt($api.dom('#total_price').innerHTML);
+
+                                    // var model = api.require('model');
+                                    model.updateById({
+                                        class: 'user',
+                                        id: $api.getStorage('currentUser').userId,
+                                        value: {
+                                            money: moneynow
+                                        }
+                                    }, function(ret, err) {
+                                        if (ret) {
+                                            api.sendEvent({
+                                                name: 'userListenermoney'
+                                            });
+                                            //触发一个setticketinfo事件，用于及时更新ticket_detail页面
+                                            api.sendEvent({
+                                                name: 'setticketinfo'
+                                            });
+                                            alert("您可在'票栈'页面中查看最新影票订单:)");
+                                            api.closeWin({});
+                                        }
+                                    });
+                                }
+                            });
+                        });
+                } else {
+                    alert(JSON.stringify(err));
+                }
+            });
+        }
+
+        function goBack() {
+            api.closeWin({});
+
+        };
+    </script>
+</body>
+
+</html>

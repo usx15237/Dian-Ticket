@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../css/api.css" />
+    <link rel="stylesheet" type="text/css" href="../../css/common.css" />
+    <link rel="stylesheet" type="text/css" href="../../css/aui.css" />
+    <style>
+        .text-light {
+            color: #999 !important;
+        }
+
+        .aui-radio {
+            width: 1rem;
+            height: 1rem;
+        }
+        .float{
+          background-color:#66B3FF;
+          float: right;
+          border: 1px solid red;
+          border-radius:5px;
+        }
+        .wenzi{
+          font-size: 20px;
+          font-variant: normal;
+          margin-left: 140px;
+        }
+        .float:hover{
+           background-color: 	#97CBFF;
+          }
+        .beijing{
+          background-image:url(../../image/beijing1.jpg);
+          /*background-color: 	#FFE6D9;*/
+        }
+        .wenzi1{
+          color:red;
+        }
+        #searchText{
+          background-color: #CCFFCC;
+          border: 1px solid grey;
+          margin:3px 5px;
+          border-radius: 3px;
+          width: 80%;
+          height: 30px;
+          padding-left: 10px;
+          display: inline-block;
+        }
+        #searchButton{
+         background-color:#CCFF00;
+           border-radius: 3px;
+             width: 15%;
+             height: 30px;
+          display: inline-block;
+        }
+    </style>
+</head>
+<header class="aui-bar aui-bar-nav" id="aui-header">
+    <a class="aui-btn aui-pull-left" tapmode onclick="goBack()">
+        <span class="aui-iconfont aui-icon-left"></span>
+    </a>
+    <div class="aui-title">场次详情</div>
+    <a class="aui-btn aui-pull-right">
+        <span class="aui-iconfont aui-icon-plus"></span>
+    </a>
+</header>
+
+<body >
+    <input type="text" id="searchText"><input type="submit" value="搜索" onclick="updateCinemaList()" id="searchButton">
+    <script id="interationTemp" type="text/x-dot-template">
+        {{~it.array:value:index}}
+        <div class="aui-card-list beijing">
+            <div class="aui-card-list-header aui-font-size-14">
+                <h1>{{= value[0].cinema_name}}</h1>
+            </div>
+            {{~it.array[index]:value2:index2}}
+            <div>
+            <div class="aui-card-list-content-padded aui-padded-t-0 text-light wenzi1">
+                <h4>场次:{{= index2+1}}</h4>
+            </div>
+            <div class="aui-card-list-content-padded aui-padded-t-0 text-light ">
+                放映时间:{{= value2.start_time}}
+            </div>
+            <div class="aui-card-list-content-padded aui-padded-t-0 text-light ">
+                放映厅:{{= value2.hall_index }}
+            </div>
+            <div class="aui-card-list-content-padded aui-padded-t-0 text-light ">
+                票价:{{= value2.price }}
+                <div class="aui-card-list-footer aui-border-t float" onclick="chooseChair({{= index}},{{= index2}})">  购票  </div>
+            </div>
+            <div class="aui-card-list-content-padded aui-padded-t-0 text-light">
+                观影险:{{= value2.sure_price }}
+            </div>
+            </div>
+            {{~}}
+        </div>
+        {{~}} <hr/>
+    </script>
+    <section class="aui-content" id="interation"></section>
+</body>
+<script type="text/javascript" src="../../script/api.js"></script>
+<script type="text/javascript" src="../../script/doT.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+        fnInit();
+        updateCinemaList();
+    }
+
+    function fnInit() {
+        arr = [];
+        arr2 = [];
+    }
+
+    function chooseChair(i, j) {
+        api.openWin({
+            name: 'detail',
+            url: '../cinema/chooseChair.html',
+            pageParam: {
+                name: api.pageParam.name,
+                watchId:arr2[i][j].id
+            }
+        });
+    }
+
+    function groupBycinema(aa) {
+        var list = aa,
+            flag = 0,
+            data = [];
+        for (var i = 0; i < list.length; i++) {
+            var az = '';
+            for (var j = 0; j < data.length; j++) {
+                if (data[j][0].cinema_name == list[i].cinema_name) {
+                    flag = 1;
+                    az = j;
+                    break;
+                }
+            }
+            if (flag == 1) {
+                data[az].push(list[i]);
+                flag = 0;
+            } else if (flag == 0) {
+                wdy = new Array();
+                wdy.push(list[i]);
+                data.push(wdy);
+            }
+        }
+        return data
+    }
+
+    function updateCinemaList() {
+        var model = api.require('model');
+        model.config({
+            appKey: 'FB02A2AA-D95A-6012-8918-0CBFF67EB6DD',
+            host: 'https://d.apicloud.com'
+        });
+
+        //查询Schedule表中name值为api.pageParam.name的那条数据
+        var query = api.require('query');
+        query.createQuery(
+            function(ret, err) {
+                query.whereEqual({
+                    qid: ret.qid,
+                    column: 'movie_name',
+                    value: api.pageParam.name
+                });
+                model.findAll({
+                    class: 'Schedule',
+                    qid: ret.qid
+                }, function(ret, err) {
+                    if (ret)
+                    {
+                          while(arr.length>0)arr.pop();          //清空栈++
+                        for (var i = 0; i < ret.length; i++) {
+                             if(ret[i].cinema_name.indexOf($api.byId('searchText').value)>=0)
+                            arr.push(ret[i])
+                        }
+                        arr2 = groupBycinema(arr)
+                        var interationData = {
+                            "array": arr2
+                        };
+                        //获取
+                        var interation = doT.template($api.dom('#interationTemp').innerHTML);
+                        $api.dom('#interation').innerHTML = interation(interationData);
+                    }
+                });
+            })
+    }
+
+    function goBack() {
+        api.closeWin({});
+
+    };
+</script>
+
+</html>

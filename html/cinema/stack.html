@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../css/api.css" />
+    <link rel="stylesheet" type="text/css" href="../../css/style.css" />
+    <link rel="stylesheet" type="text/css" href="../../css/aui.css" />
+    <style type="text/css">
+        body {
+            background-image: url(../../image/beijing.jpg);
+        }
+
+        .total {
+            color: #fef4e9;
+            border: solid 1px #da7c0c;
+            background: #f78d1d;
+            background: -webkit-gradient(linear, left top, left bottom, from(#faa51a), to(#f47a20));
+            background: -moz-linear-gradient(top, #faa51a, #f47a20);
+            filter: progid: DXImageTransform.Microsoft.gradient(startColorstr='#faa51a', endColorstr='#f47a20');
+            text-align: center;
+            line-height: 50px;
+        }
+
+        .submit {
+            margin-top: 20px;
+            color: #fcd3a5;
+            background: -webkit-gradient(linear, left top, left bottom, from(#f47a20), to(#faa51a));
+            background: -moz-linear-gradient(top, #f47a20, #faa51a);
+            filter: progid: DXImageTransform.Microsoft.gradient(startColorstr='#f47a20', endColorstr='#faa51a');
+            text-align: center;
+            line-height: 50px;
+        }
+
+        .weizi {
+            color: black;
+        }
+
+        .tuchu {
+            box-shadow: 0px 1px 3px rgba(34, 25, 25, 0.2);
+        }
+
+        .click {
+            color: #fef4e9;
+            border: solid 1px #da7c0c;
+            background: #f78d1d;
+            background: -webkit-gradient(linear, left top, left bottom, from(#faa51a), to(#f47a20));
+            background: -moz-linear-gradient(top, #faa51a, #f47a20);
+            filter: progid: DXImageTransform.Microsoft.gradient(startColorstr='#faa51a', endColorstr='#f47a20');
+        }
+
+        .click:hover {
+            background: #f47c20;
+            background: -webkit-gradient(linear, left top, left bottom, from(#f88e11), to(#f06015));
+            background: -moz-linear-gradient(top, #f88e11, #f06015);
+            filter: progid: DXImageTransform.Microsoft.gradient(startColorstr='#f88e11', endColorstr='#f06015');
+        }
+
+        .goupiao {
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="aui-bar aui-bar-nav" id="aui-header">
+        <a class="aui-btn aui-pull-left" tapmode onclick="goBack()">
+            <span class="aui-iconfont aui-icon-left"></span>
+        </a>
+        <div class="aui-title">票仓页面</div>
+        <a class="aui-btn aui-pull-right">
+            <span class="aui-iconfont aui-icon-plus"></span>
+        </a>
+    </header>
+    <script id="interationTemp" type="text/x-dot-template">
+        {{~it.array:value:index}} {{? value.TicketId.transfering_chairs.length>0}}
+        <div class="">
+            <div class="aui-card-list-content-padded aui-padded-t-0 text-light">
+                <h4>转让用户:{{= value.userId.username}}</h4>
+            </div>
+            <div class="aui-card-list-content-padded aui-padded-t-0 text-light">
+                影院:{{= value.ScheduleId.cinema_name}}
+            </div>
+            <div class="aui-card-list-content-padded aui-padded-t-0 text-light">
+                放映厅:{{= value.ScheduleId.hall_index}}
+            </div>
+            <div class="aui-card-list-content-padded aui-padded-t-0 text-light">
+                影票单价:{{= value.ScheduleId.price}}元
+            </div>
+            <div class="aui-card-list-content-padded aui-padded-t-0 text-light">
+                观影险单价:{{= value.ScheduleId.sure_price}}元
+            </div>
+            <div class="aui-card-list-content-padded aui-padded-t-0 text-light" id="interation2">
+
+                {{~it.array[index].TicketId.transfering_chairs:value2:index2}}
+                <p>{{= value2.row}}排{{= value2.label}}座
+                    <p onclick="buy({{= index}},{{= index2}})" class="goupiao"><span class="click">购票</span></p>
+                </p>
+                {{~}}
+
+            </div>
+            <div class="aui-card-list-footer aui-border-t">
+                <div class="weizi">
+                    <i class="aui-iconfont aui-margin-r-5 aui-font-size-14"></i>转让原因:
+                    <div class="tuchu">&nbsp;{{= value.transferReason}}</div>
+                </div>
+            </div>
+        </div>
+        <hr/> {{?}} {{~}}
+    </script>
+    <section class="aui-content" id="interation"></section>
+
+    <!--  条件语句 -->
+    <script id="conditionalsTemp" type="text/x-dot-template">
+        {{? it.ifstacking==true}}
+        <div class="total">总计:<span id="sum">0</span>元</div>
+        <hr>
+        <div class="submit" id="submit" onclick="submit()">提交</div>
+        {{?}}
+    </script>
+    <div id="conditionals"></div>
+    <hr />
+
+
+</body>
+<script type="text/javascript" src="../../script/api.js"></script>
+<script type="text/javascript" src="../../script/doT.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+        finit();
+        updateStackList();
+    };
+
+    function finit() {
+        TicketObj = {};
+        TicketObj.chairs = [];
+        stackList = [];
+        sum = 0;
+        num = 0;
+        stack_statue = {
+            ifstacking: false,
+            buyedchairs: []
+        };
+    }
+
+//是否有待转让的影票?
+function notAllTransfered(ret){
+  for(var i=0;i<ret.length;i++){
+    for(var j=0;j<ret[i].TicketId.chairs.length;j++){
+      if(ret[i].TicketId.chairs[j].statue=="待转让"){
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+
+
+
+    function updateStackList() {
+
+        //查找目前登录用户的影票数组
+        var model = api.require('model');
+        model.config({
+            appKey: 'FB02A2AA-D95A-6012-8918-0CBFF67EB6DD',
+            host: 'https://d.apicloud.com'
+        });
+        var query = api.require('query');
+        query.createQuery(function(ret, err) {
+            query.include({
+                qid: ret.qid,
+                column: 'TicketId'
+            });
+            query.include({
+                qid: ret.qid,
+                column: 'ScheduleId'
+            });
+            query.include({
+                qid: ret.qid,
+                column: 'userId'
+            });
+            query.whereEqual({
+                qid: ret.qid,
+                column: 'movie_name',
+                value: api.pageParam.name
+            });
+
+            model.findAll({
+                class: 'TicketStack',
+                qid: ret.qid
+            }, function(ret, err) {
+                if (notAllTransfered(ret)) {
+                    stackList = ret;
+                    var interationData = {
+                        "array": ret
+                    };
+                    stack_statue.ifstacking = true;
+
+                    var interation = doT.template($api.dom('#interationTemp').innerHTML);
+                    $api.dom('#interation').innerHTML = interation(interationData);
+
+                } else {
+
+                    //如果目前暂无用户转让影票，则显示提示信息
+                    $api.dom('#interation').innerHTML = "目前暂无用户转让该电影影票o(╯□╰)o";
+
+                }
+                //根据目前有无用户转让影票，决定是否隐藏"合计"和"提交"框
+                var conditionals = doT.template($api.dom('#conditionalsTemp').innerHTML);
+                $api.dom('#conditionals').innerHTML = conditionals(stack_statue);
+
+            });
+        });
+    }
+
+    function buy(index, index2) {
+        var buyed = false;
+        for (var i = 0; i < stack_statue.buyedchairs.length; i++) {
+            if (stack_statue.buyedchairs[i].l1 == index && stack_statue.buyedchairs[i].l2 == index2) {
+                alert("请勿多次购买同一影票");
+                buyed = true;
+            }
+        }
+        if (buyed == false) {
+            num = index;
+            var single = stackList[index].ScheduleId.price + stackList[index].ScheduleId.sure_price;
+            sum += single;
+            $api.dom('#sum').innerHTML = sum;
+            //影票
+            TicketObj.Ticket_id = stackList[index].TicketId.id;
+            TicketObj.Schedule_id = stackList[index].ScheduleId.id;
+            var chair = {}
+            chair.row = stackList[index].TicketId.transfering_chairs[index2].row;
+            chair.label = stackList[index].TicketId.transfering_chairs[index2].label;
+            chair.statue = '未观看';
+            TicketObj.chairs.push(chair);
+            var item = {};
+            item.l1 = index;
+            item.l2 = index2;
+            stack_statue.buyedchairs.push(item);
+        }
+    }
+
+
+    function notInstackList(i) {
+        for (var j = 0; j < TicketObj.chairs.length; j++) {
+            if (TicketObj.chairs[j].row == stackList[num].TicketId.transfering_chairs[i].row && TicketObj.chairs[j].label == stackList[num].TicketId.transfering_chairs[i].label) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    //对于transfer_chairs与transfering_chairs,只需控制其数量
+    //对于chairs,则需控制其状态
+
+    function submit() {
+
+        if (stackList[num].userId.id != $api.getStorage('currentUser').userId) {
+            TicketObj.transfering_chairs = [];
+            for (var i = 0; i < stackList[num].TicketId.transfering_chairs.length; i++) {
+                if (notInstackList(i)) {
+                    TicketObj.transfering_chairs.push(stackList[num].TicketId.transfering_chairs[i]);
+                }
+            }
+            //TicketObj.chairs.splice(0, 1);
+
+            for (var i = 0; i < TicketObj.chairs.length; i++) {
+                for (var j = 0; j < stackList[num].TicketId.chairs.length; j++) {
+                    if (stackList[num].TicketId.chairs[j].row == TicketObj.chairs[i].row && stackList[num].TicketId.chairs[j].label == TicketObj.chairs[i].label) {
+                        stackList[num].TicketId.chairs[j].statue = '已转让';
+                    }
+                }
+            }
+            var model = api.require('model');
+            //向Ticket表中插入新数据
+            model.insert({
+                class: 'Ticket',
+                value: {
+                    ScheduleId: TicketObj.Schedule_id,
+                    userId: $api.getStorage('currentUser').userId,
+                    chairs: TicketObj.chairs,
+                    transfer_chairs: TicketObj.chairs,
+                    transfering_chairs: [],
+                }
+            }, function(ret, err) {
+                if (ret) {
+
+                    model.updateById({
+                        class: 'Ticket',
+                        id: TicketObj.Ticket_id,
+                        value: {
+                            transfering_chairs: TicketObj.transfering_chairs,
+                            chairs: stackList[num].TicketId.chairs
+                        }
+                    }, function(ret, err) {
+                        if (ret) {
+                            var query = api.require('query');
+                            query.createQuery(function(ret, err) {
+                                query.whereEqual({
+                                    qid: ret.qid,
+                                    column: 'id',
+                                    value: stackList[num].userId.id
+                                });
+                                model.findAll({
+                                    class: 'user',
+                                    qid: ret.qid
+                                }, function(ret, err) {
+                                    if (ret) {
+                                      alert(ret[0].username);
+                                        var money1 = ret[0].money;
+                                        var moneynow = parseInt(money1) + parseInt($api.dom('#sum').innerHTML);
+
+                                        var model = api.require('model');
+                                        model.updateById({
+                                            class: 'user',
+                                            id: stackList[num].userId.id,
+                                            value: {
+                                                money: moneynow
+                                            }
+                                        }, function(ret, err) {
+                                            if (ret) {
+                                                query.createQuery(
+                                                    function(ret, err) {
+                                                        query.whereEqual({
+                                                            qid: ret.qid,
+                                                            column: 'id',
+                                                            value: $api.getStorage('currentUser').userId
+                                                        });
+                                                        model.findAll({
+                                                            class: 'user',
+                                                            qid: ret.qid
+                                                        }, function(ret, err) {
+                                                            if (ret) {
+                                                              alert(ret[0].username);
+                                                                var moneynow = parseInt(ret[0].money) - parseInt($api.dom('#sum').innerHTML);
+                                                                model.updateById({
+                                                                    class: 'user',
+                                                                    id: $api.getStorage('currentUser').userId,
+                                                                    value: {
+                                                                        money: moneynow
+                                                                    }
+                                                                }, function(ret, err) {
+                                                                    if (ret) {
+                                                                        api.sendEvent({
+                                                                            name: 'userListenermoney'
+                                                                        });
+                                                                        //触发一个setticketinfo事件，用于及时更新ticket_detail页面
+                                                                        api.sendEvent({
+                                                                            name: 'setticketinfo'
+                                                                        });
+
+                                                                        alert("您可在'票栈'页面中查看最新影票订单:)");
+
+                                                                        api.closeWin({});
+                                                                    }
+                                                                });
+                                                            }
+                                                        });
+                                                    });
+                                            }
+                                        });
+                                    }
+                                });
+                            });
+                        }
+                    });
+                }
+            });
+        } else {
+            alert("请勿购买您自己所转让的影票");
+            api.closeWin({});
+        }
+    }
+
+
+    function goBack() {
+        api.closeWin({});
+
+    };
+</script>
+
+</html>

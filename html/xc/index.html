@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <meta name="viewport" content="width=device-width">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" type="text/css" href="../../css/api.css" />
+    <link rel="stylesheet" type="text/css" href="../../css/aui.css" />
+</head>
+<style>
+  image{
+    width: 100px;
+  }
+</style>
+<body>
+    <header class="aui-bar aui-bar-nav" id="aui-header">
+        <a class="aui-btn aui-pull-left" tapmode onclick="closeWin()">
+            <span class="aui-iconfont aui-icon-left"></span>
+        </a>
+        <div class="aui-title">已看电影</div>
+        <a class="aui-btn aui-pull-right">
+            <span class="aui-iconfont aui-icon-plus"></span>
+        </a>
+    </header>
+    <div>
+        <div class="demo__card demo__card--regular" onclick="gofh()">
+            <div class="demo__card-frontside">
+                <div class="demo__card-type">2017/11/1 09:30:00</div>
+                <div class="demo__card-body">
+                    <div class="demo__card-picture demo__card-picture--starbucks">
+                        <image src="https://img3.doubanio.com/view/photo/m/public/p2507227732.webp"></image>
+                    </div>
+                    <div class="demo__card-info">
+                        <div class="demo__card-caption">芳华</div>
+                        <div class="demo__card-description">一段青春的故事</div>
+                    </div>
+                    <div class="demo__card-money">￥40</div>
+                </div>
+            </div>
+        </div>
+        <div class="demo__card demo__card--regular"  onclick="goymz()">
+            <div class="demo__card-frontside">
+                <div class="demo__card-type">2018/12/11 03:00:00</div>
+                <div class="demo__card-body">
+                    <div class="demo__card-picture demo__card-picture--starbucks">
+                        <image src="https://img3.doubanio.com/view/photo/m/public/p2508469786.webp"></image>
+                    </div>
+                    <div class="demo__card-info">
+                        <div class="demo__card-caption">妖猫传</div>
+                        <div class="demo__card-description">一只猫的故事</div>
+                    </div>
+                    <div class="demo__card-money">￥40</div>
+                </div>
+            </div>
+        </div>
+        <div class="demo__card demo__card--regular"  onclick="gozask()">
+            <div class="demo__card-frontside">
+                <div class="demo__card-type">2017/12/11 09:04:00</div>
+                <div class="demo__card-body">
+                    <div class="demo__card-picture demo__card-picture--starbucks">
+                        <image src="https://img1.doubanio.com/view/photo/m/public/p2500475098.webp"></image>
+                    </div>
+                    <div class="demo__card-info">
+                        <div class="demo__card-caption">至暗时刻</div>
+                        <div class="demo__card-description">一个胖子的故事</div>
+                    </div>
+                    <div class="demo__card-money">￥60</div>
+                </div>
+            </div>
+        </div>
+        <div class="demo__card demo__card--regular"  onclick="goxm()">
+            <div class="demo__card-frontside">
+                <div class="demo__card-type">2017/11/1 11:20:00</div>
+                <div class="demo__card-body">
+                    <div class="demo__card-picture demo__card-picture--starbucks">
+                        <image src="https://img3.doubanio.com/view/photo/m/public/p2503997584.webp"></image>
+                    </div>
+                    <div class="demo__card-info">
+                        <div class="demo__card-caption">寻梦环游记</div>
+                        <div class="demo__card-description">一个男孩的故事</div>
+                    </div>
+                    <div class="demo__card-money">￥50</div>
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript" src="../../script/api.js"></script>
+        <script type="text/javascript">
+            apiready = function() {
+            };
+
+            function gofh() {
+                api.openWin({
+                    name: 'detail',
+                    url: '../detail/movie_detail.html',
+                    pageParam: {
+                        name:'芳华',
+                    }
+                });
+            }
+
+
+
+            function goymz() {
+                api.openWin({
+                    name: 'detail',
+                    url: '../detail/movie_detail.html',
+                    pageParam: {
+                        name:"妖猫传"
+                    }
+                });
+            }
+
+            function goxm() {
+                api.openWin({
+                    name: 'detail',
+                    url: '../detail/movie_detail.html',
+                    pageParam: {
+                        name:"寻梦环游记"
+                    }
+                });
+            }
+
+            function gozask(index) {
+                api.openWin({
+                    name: 'detail',
+                    url: '../detail/movie_detail.html',
+                    pageParam: {
+                        name:"至暗时刻"
+                    }
+                });
+            }
+
+            function closeWin() {
+                api.closeFrame({});
+            };
+        </script>
+</body>
+
+</html>

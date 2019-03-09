@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../css/api.css" />
+    <link rel="stylesheet" type="text/css" href="../../css/common.css" />
+    <link rel="stylesheet" type="text/css" href="../../css/aui.css" />
+    <script src="http://apps.bdimg.com/libs/jquery/2.1.1/jquery.js"></script>
+    <script src="http://cdn.staticfile.org/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
+    <style>
+    body {
+      background-image:url(../../image/beijing.jpg);
+    }
+
+        #interation1 {
+            width: 40px;
+            background-color: red;
+            display: inline;
+        }
+
+        #interation2 {
+            width: 40px;
+            background-color: yellow;
+            display: inline;
+        }
+
+        .icon {
+            color: #fff;
+            font-size: 12px;
+            margin-left: 5px;
+            padding: 1px;
+            border-radius: 3px;
+        }
+
+        .zhuan {
+            background-color: #5599FF;
+        }
+
+        .tui {
+            background-color: #e5322d;
+        }
+
+        .statue {
+            color: #fff;
+            font-size: 12px;
+            padding: 2px 4px;
+            display: inline-block;
+        }
+
+        .will {
+            background-color: #5bb06c;
+        }
+        .button {
+	display: inline-block;
+	outline: none;
+	cursor: pointer;
+	text-align: center;
+	text-decoration: none;
+	font: 14px/100% Arial, Helvetica, sans-serif;
+	padding: .5em 2em .55em;
+	text-shadow: 0 1px 1px rgba(0,0,0,.3);
+	-webkit-border-radius: .5em;
+	-moz-border-radius: .5em;
+	border-radius: .5em;
+	-webkit-box-shadow: 0 1px 2px rgba(0,0,0,.2);
+	-moz-box-shadow: 0 1px 2px rgba(0,0,0,.2);
+	box-shadow: 0 1px 2px rgba(0,0,0,.2);
+}
+.button:hover {
+	text-decoration: none;
+}
+.buju{
+  margin-left: 10px;
+}
+.state{
+  background-color: red;
+}
+.floatleft{
+  float: right;
+  margin-top: 40px;
+  margin-right: 40px;
+}
+    </style>
+</head>
+
+<body>
+    <header class="aui-bar aui-bar-nav" id="aui-header">
+        <a class="aui-btn aui-pull-left" tapmode onclick="closeWin()">
+            <span class="aui-iconfont aui-icon-left"></span>
+        </a>
+        <div class="aui-title">影票详情</div>
+        <a class="aui-btn aui-pull-right">
+            <span class="aui-iconfont aui-icon-plus"></span>
+        </a>
+    </header>
+    <script id="interpolationTemp" type="text/x-dot-template">
+        <h4>{{= it.ScheduleId.movie_name}}   <span> {{= it.quantity}}张</span></h4>
+        <div >{{= it.ScheduleId.cinema_name}}</div>
+        <div >{{= it.ScheduleId.hall_index}}号厅</div>
+        <span class = "ss">
+        {{~it.chairs:value:index}}
+        <p >{{= value.row }}排{{= value.label }}座</p>
+        <div class="statue will">{{= value.statue}}</div>
+        {{~}}
+        </span>
+    </script>
+    <div class="panel panel-default floatleft">
+        <div id="qrcode">
+
+        </div>
+    </div>
+    <div id="interpolation" class="buju"></div>
+    <div>
+        <hr>
+        <span class="icon tui button" onclick="refund()">退票</span>
+        <span class="icon zhuan button" onclick="transfer()">转让</span></div>
+    </div>
+    <hr />
+</body>
+
+<script type="text/javascript" src="../../script/api.js"></script>
+<script type="text/javascript" src="../../script/doT.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+        InitData();
+        fnInitEvent();
+        updateTicketDetail();
+        Statue();
+    };
+
+    function Statue() {
+      if($api.dom('.statue').innerHTML == "待转让"){
+        $api.addCls($api.dom('.statue'),'state');
+      }
+    }
+    //监听setstatue事件(由transfer页面触发),以此及时更新页面
+    function fnInitEvent() {
+        api.addEventListener({
+            name: 'setstatue'
+        }, function(ret, err) {
+            InitDataByStorage()
+            updateTicketDetail();
+        });
+    }
+
+    //接受由frame1页面传入的参数值
+    function InitData() {
+      var model = api.require('model');
+      model.config({
+          appKey: 'FB02A2AA-D95A-6012-8918-0CBFF67EB6DD',
+          host: 'https://d.apicloud.com'
+      });
+      // var query = api.require('query');
+      // query.createQuery(function(ret, err) {
+      //     query.whereEqual({
+      //         qid: ret.qid,
+      //         column: 'userId',
+      //         value: $api.getStorage('currentUser').userId
+      //     });
+      //     model.findAll({
+      //         class: 'Ticket',
+      //         qid: ret.qid
+      //     }, function(ret, err) {
+      //       var transfer_chairs_length = ret[0].transfer_chairs.length;
+      //       var transfering_chairs_length = ret[0].transfering_chairs.length;
+      //
+      //     });
+      // });
+      ticketObj = api.pageParam;
+                  time = ticketObj.updatedAt;
+                  var aa =ticketObj.chairs.length-ticketObj.transfer_chairs.length-ticketObj.transfering_chairs.length;
+                  var times = "时间："+time+"待观看："+ticketObj.transfer_chairs.length+"转让中:"+ticketObj.transfering_chairs.length+"已转让"+aa;
+                  outputQRCod(times, 150, 150);
+       　　　　　//转换中文字符串
+               function toUtf8(str) {
+                   var out, i, len, c;
+                   out = "";
+                   len = str.length;
+                   for (i = 0; i < len; i++) {
+                       c = str.charCodeAt(i);
+                       if ((c >= 0x0001) && (c <= 0x007F)) {
+                           out += str.charAt(i);
+                       } else if (c > 0x07FF) {
+                           out += String.fromCharCode(0xE0 | ((c >> 12) & 0x0F));
+                           out += String.fromCharCode(0x80 | ((c >> 6) & 0x3F));
+                           out += String.fromCharCode(0x80 | ((c >> 0) & 0x3F));
+                       } else {
+                           out += String.fromCharCode(0xC0 | ((c >> 6) & 0x1F));
+                           out += String.fromCharCode(0x80 | ((c >> 0) & 0x3F));
+                       }
+                   }
+                   return out;
+               }
+
+               //生成二维码
+               function outputQRCod(txt, width, height) {
+                   //先清空
+                   $("#qrcode").empty();
+                   //中文格式转换
+                   var str = toUtf8(txt);
+                   //生成二维码
+                   $("#qrcode").qrcode({
+                       render: "canvas",//canvas和table两种渲染方式
+                       width: width,
+                       height: height,
+                       text: str
+                   });
+               }
+    }
+
+    function InitDataByStorage() {
+        ticketObj = $api.getStorage('key')
+    }
+
+    function updateTicketDetail() {
+        //获取该张影票的座位数量
+        ticketObj.quantity = ticketObj.chairs.length;
+        var interpolationData = ticketObj;
+        var interpolation = doT.template($api.dom('#interpolationTemp').innerHTML);
+        $api.dom('#interpolation').innerHTML = interpolation(interpolationData);
+    }
+
+    //跳转至转让页面
+    function transfer() {
+        api.alert({
+            title: '提示',
+            msg: '转让业务将收取一定额度手续费,转让成功后,影票金额及观影保险费用将第一时间转至您账户余额中'
+        });
+
+        api.openWin({
+            name: 'transfer',
+            url: '../transfer/transfer.html',
+            pageParam: ticketObj
+        });
+    }
+    function refund() {
+      api.openWin({
+          name: 'refund',
+          url:'../baidumap/baidu_map_win.html',
+          bounces:false,
+          delay: 300,
+          pageParam: ticketObj
+      });
+    }
+    function closeWin() {
+        api.closeWin({});
+    };
+</script>
+</html>

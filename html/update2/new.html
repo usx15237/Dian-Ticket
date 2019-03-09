@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../css/api.css" />
+    <link rel="stylesheet" type="text/css" href="../../css/common.css" />
+    <link rel="stylesheet" type="text/css" href="../../css/aui.css" />
+    <link rel="apple-touch-icon" href="images/touch-icon-iphone.png" />
+    <link rel="apple-touch-icon" sizes="76x76" href="images/touch-icon-ipad.png" />
+    <link rel="apple-touch-icon" sizes="120x120" href="images/touch-icon-iphone-retina.png" />
+    <link rel="allpe-touch-iocn" sizes="152x152" href="images/touch-icon-ipad-retina.png" />
+
+    <link rel="stylesheet" type="text/css" href="css/global.css" />
+    <style>
+
+    </style>
+</head>
+
+<body>
+
+    <div>
+
+
+
+        <form id="formRegister" action="" onsubmit="return check(this)">
+
+            <link href="css/register.css" rel="stylesheet" type="text/css" />
+            <header class="aui-bar aui-bar-nav" id="aui-header">
+                <a class="aui-btn aui-pull-left" tapmode onclick="closeWin()">
+                    <span class="aui-iconfont aui-icon-left"></span>
+                </a>
+                <div class="aui-title">用户资料</div>
+                <a class="aui-btn aui-pull-right">
+                    <span class="aui-iconfont aui-icon-plus"></span>
+                </a>
+            </header>
+            <section id="register">
+                <div>
+                    <span>
+                  <img src="images/icon_user.png" width="24" height="24" alt="用户图标"></span><input id="txt_UserNmae" name="txt_UserName" type="text" placeholder="用户名（3～26个字符）"></div>
+                <div>
+                    <span>
+                  <img src="images/icon_password.png" width="24" height="24" alt="密码图标"></span><input id="txt_Pwd" name="txt_Pwd" type="password" placeholder="密码（6～16个字符）"></div>
+                <div>
+                    <span>
+                  <img src="images/icon_password.png" width="24" height="24" alt="密码图标"></span><input id="txt_PwdTwo" name="txt_PwdTwo" type="password" placeholder="再次输入密码"></div>
+                <div>
+                    <span>
+                  <img src="images/icon_email.png" width="24" height="24" alt="邮箱图标"></span><input id="txt_Email" name="txt_Email" type="email" placeholder="邮箱"></div>
+                <div>
+                    <span>
+                  <img src="images/icon_phone.png" width="24" height="24" alt="手机图标"></span><input id="txt_Mobile" name="txt_Mobile" type="number" placeholder="(手机号)方便推送取票信息"></div>
+                <input type="hidden" id="hid_Action" name="hid_Action" value="add" />
+                <a class="btn" href="" id="asubmit" onclick="check()">提交修改</a>
+                <footer>
+                    <p>&copy;2014 JJOOBB.CN All Rights Reserved</p>
+                </footer>
+            </section>
+        </form>
+    </div>
+
+</body>
+<script type="text/javascript" src="../../script/api.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+
+    };
+
+    function check() {
+        //			姓名
+        var name = document.getElementById("txt_UserNmae");
+        if (name.value == '') {
+            alert('姓名不能为空');
+            name.focus();
+            return false;
+        } else {
+            var vname = (/^[a-zA-Z\u4e00-\u9fa5]{2,10}$/);
+            if (!vname.test(name.value)) {
+                alert('姓名2-10个字，只能是中文或英文');
+                name.focus();
+                return false;
+            }
+        }
+
+        //			电话
+        var phone = document.getElementById('txt_Mobile');
+        if (phone.value == '') {
+            alert('电话不能为空');
+            phone.focus();
+            return false;
+        } else {
+            var phone_reg = /^13[0-9]{1}[0-9]{8}$|15[0-9]{1}[0-9]{8}$|18[0-9]{1}[0-9]{8}|17[0-9]{1}[0-9]{8}$|14[0-9]{1}[0-9]{8}/;
+            var tel_reg = /^([0-9]{3,4}-)?[0-9]{7,8}$/;
+            if (!phone_reg.test(phone.value) && !tel_reg.test(phone.value)) {
+                alert('手机或电话号码格式不正确。如果是固定电话，必须形如(xxxx-xxxxxxxx)');
+                phone.focus();
+                return false;
+            }
+        }
+
+        //			密码
+        var pwd1 = document.getElementById('txt_Pwd');
+        if (pwd1.value == '') {
+            alert('密码不能为空');
+            pwd1.focus();
+            return false;
+        } else {
+            var vpwd = /^[A-Za-z0-9]+$/;
+            if (!vpwd.test(pwd1.value)) {
+                alert('密码错误，密码由数字和字母组成');
+                pwd1.focus();
+                return false;
+            } else {
+                if (pwd1.value.length < 6) {
+                    alert('密码不能少于6位');
+                    pwd1.focus();
+                    return false;
+                }
+            }
+        }
+        //			验证密码
+        var pwd2 = document.getElementById('txt_PwdTwo');
+        if (!(pwd2.value == pwd1.value)) {
+            alert('确认密码与第一次输入不同，请重新输入');
+            pwd2.focus();
+            return false;
+        }
+
+        //			邮箱
+        var email = document.getElementById('txt_Email');
+        if (email.value == '') {
+            alert('邮箱不能为空');
+            email.focus();
+            return false;
+        } else {
+            var vemail = /^[0-9a-zA-Z]+(?:[\_\.\-][a-z0-9\-]+)*@[a-zA-Z0-9]+(?:[-.][a-zA-Z0-9]+)*\.[a-zA-Z]+$/i;
+            if (!vemail.test(email.value)) {
+                alert('邮箱格式错误');
+                email.focus();
+                return false;
+            }
+        }
+
+    }
+
+    function closeWin() {
+        api.closeFrame({});
+
+    };
+</script>
+
+</html>

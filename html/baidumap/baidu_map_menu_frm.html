@@ -1,0 +1,168 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>APP</title>
+    <link rel="stylesheet" type="text/css" href="../../css/aui.css" />
+</head>
+<style type="text/css">
+    body {
+        background: #f4f4f4;
+    }
+
+    .aui-btn {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+</style>
+
+<body>
+  <script id="interpolationTemp" type="text/x-dot-template" >
+    <h4> 当前电影： {{=it.ScheduleId.movie_name}} </h4>
+    <h4> 当前影院： {{=it.ScheduleId.cinema_name}} </h4>
+  </script>
+
+    <div class="aui-content">
+      <div id="interpolation"></div><hr />
+        <div>目前离影院距离:<span id="dis"></span>米</div>
+        <div>电影剩余放映时间:<span id="time"></span></div>
+        <div>XXX</div>
+        <div onclick="closeWin()">取消退票</div>
+        <div>XXX</div>
+    </div>
+    <div class="aui-content">
+    </div>
+</body>
+<script type="text/javascript" src="../../script/api.js"></script>
+<script type="text/javascript" src="../../script/doT.min.js"></script>
+<script type="text/javascript">
+function Initdata(){
+   ticketObj=api.pageParam;
+   yourlat=0;
+   yourlon=0;
+   cinemalat=0;
+   cinemalon=0;
+   map = api.require('bMap');
+
+   var interpolationData =ticketObj;
+   var interpolation = doT.template( $api.dom('#interpolationTemp').innerHTML );
+   $api.dom( '#interpolation' ).innerHTML = interpolation( interpolationData );
+
+
+}
+
+function msgInit() {
+        alert('请与影院保持100m以上距离,电影结束时,请及时检查影票金额是否到账');
+    }
+
+    function getDistance() {
+        map.getLocation({
+            accuracy: '100m',
+            autoStop: true,
+            filter: 1
+        }, function(ret, err) {
+            if (ret.status) {
+                yourlat = ret.lat;
+                yourlon = ret.lon;
+                map.getDistance({
+                    start: {
+                        lon: yourlon,
+                        lat: yourlat
+                    },
+                    end: {
+                        lat: cinemalat,
+                        lon: cinemalon
+                    }
+                }, function(ret) {
+                    api.hideProgress();
+                    if (ret.status) {
+                        $api.dom('#dis').innerHTML = parseInt(ret.distance);
+                    }
+                });
+            }
+        });
+    }
+
+    function getCoordsFromName() {
+        api.showProgress({
+            style: 'default',
+            animationType: 'fade',
+            title: '定位中...',
+            text: '请稍候...',
+            modal: false
+        });
+        map.getCoordsFromName({
+            city: '杭州',
+            address: ticketObj.ScheduleId.cinema_name
+        }, function(ret, err) {
+            api.hideProgress();
+            if (ret.status) {
+              cinemalat = ret.lat;
+              cinemalon = ret.lon;
+            }
+        });
+    }
+
+
+    function tow(n) {
+        return n >= 0 && n < 10 ? '0' + n : '' + n;
+    }
+
+    function getDate() {
+        var oDate = new Date(); //获取现在日期对象
+        var oldTime = oDate.getTime(); //现在距离1970年的毫秒数
+        var newDate = new Date(ticketObj.ScheduleId.end_time); //获取指定日期对象
+        var newTime = newDate.getTime(); //2018年距离1970年的毫秒数
+        var second = Math.floor((newTime - oldTime) / 1000); //未来时间距离现在的秒数
+        //var day = Math.floor(second / 86400); //整数部分代表的是天；一天有24*60*60=86400秒 ；
+        second = second % 86400; //余数代表剩下的秒数；
+        var hour = Math.floor(second / 3600); //整数部分代表小时；
+        second %= 3600; //余数代表 剩下的秒数；
+        var minute = Math.floor(second / 60);
+        second %= 60;
+        // var str = tow(day) + '<span class="time">天</span>'
+        var str =tow(hour) + '<span class="time">小时</span>' +
+            tow(minute) + '<span class="time">分钟</span>' +
+            tow(second) + '<span class="time">秒</span>';
+        $api.dom('#time').innerHTML = str;
+        if(tow(hour)==0&&tow(minute)==0&&tow(second)==0){
+          api.sendEvent({
+              name: 'setstatue'
+          });
+          for(var i=0;i<ticketObj.chairs.length;i++){
+            ticketObj.chairs[i].statue='已观看';
+          }
+          $api.rmStorage('key');
+          $api.setStorage('key', ticketObj);
+          alert('您已成功退票，请及时检查账户余额');
+          api.closeWin({});
+        }
+
+    }
+
+    apiready = function() {
+        msgInit();
+        Initdata();
+        api.parseTapmode();
+        api.showProgress({
+            style: 'default',
+            animationType: 'fade',
+            title: '定位中...',
+            text: '请稍候...',
+            modal: false
+        });
+        //获取影院位置
+        getCoordsFromName();
+        //获取用户位置与影院位置的距离
+        //getDistance();
+        setInterval(getDistance,1000);
+        setInterval(getDate, 1000);
+    };
+
+    function closeWin() {
+        api.closeWin({});
+    };
+</script>
+
+</html>

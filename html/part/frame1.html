@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>端API</title>
+    <link rel="stylesheet" type="text/css" href="../../css/api.css" />
+    <link rel="stylesheet" type="text/css" href="../../css/style.css" />
+    <style>
+        .item {
+            display: table;
+            height: 70px;
+            width: 100%;
+            background-color: #fff;
+            position: relative;
+            border-bottom: 1px solid #d3d3d3;
+        }
+
+        .item-name {
+            color: #000;
+            font-size: 16px;
+            line-height: 18px;
+            margin-top: 10px;
+        }
+
+        .statue {
+            color: #fff;
+            font-size: 12px;
+            padding: 2px 4px;
+            display: inline-block;
+        }
+
+        .will {
+            background-color: #5bb06c;
+        }
+
+        .ing {
+            background-color: #DDAA00;
+        }
+
+        .had {
+            background-color: #AAAAAA;
+        }
+
+        .item-cinnema {
+            color: #999;
+            font-size: 12px;
+            padding: 10px 0;
+        }
+
+        .item-time {
+            color: #999;
+            font-size: 12px;
+            margin-right: 10px;
+            border-bottom: 1px;
+            padding: 10px 0;
+        }
+        /* 标题栏小图标 */
+
+        .icon {
+            color: #fff;
+            font-size: 12px;
+            margin-left: 5px;
+            padding: 1px;
+            border-radius: 3px;
+        }
+
+        .zhuan {
+            background-color: #5599FF;
+        }
+
+        .tui {
+            background-color: #e5322d;
+        }
+
+        .time {
+            background-color: #cd22e2;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="h10"></div>
+    <!-- 退票与转让应该写到详情页面中去 -->
+    <script id="interationTemp" type="text/x-dot-template">
+        {{~it.array:value:index}}
+        <div class="item style1" tapmode="itemhover" onclick="seeTicketDetail({{= index}})">
+            <div class="itemshelf">
+                <div class="item-name">{{= value.ScheduleId.movie_name}}</div>
+                <div class="item-cinnema">{{= value.ScheduleId.cinema_name}}</div>
+                <div class="item-time"><span class="icon time">放映时间</span>{{= value.ScheduleId.start_time}}</div>
+            </div>
+        </div>
+        {{~}}
+    </script>
+
+    <div class="section3" id="interation"></div>
+</body>
+<script type="text/javascript" src="../../script/api.js"></script>
+<script type="text/javascript" src="../../script/doT.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+      fnInit();
+      updateTicketlist();
+      fnInitEvent();
+    };
+
+    function fnInit() {
+        TicketArray = [];
+    }
+
+    function fnInitEvent() {
+
+        //监听setuserinfo事件(由login页面触发),以此及时更新页面
+        api.addEventListener({
+            name: 'setuserinfo'
+        }, function(ret, err) {
+            fnInit();
+            updateTicketlist();
+        });
+
+        //监听setticketinfo事件(由chooseChair页面触发),以此及时更新页面
+        api.addEventListener({
+            name: 'setticketinfo'
+        }, function(ret, err) {
+            fnInit();
+            updateTicketlist();
+        });
+
+        //监听setstatue事件(由transfer页面触发),以此及时更新页面
+        api.addEventListener({
+            name: 'setstatue'
+        }, function(ret, err) {
+            fnInit();
+            updateTicketlist();
+        });
+    }
+
+    //查找目前登录用户在"Ticket"表中的数据
+    function updateTicketlist() {
+        var model = api.require('model');
+        model.config({
+            appKey: 'FB02A2AA-D95A-6012-8918-0CBFF67EB6DD',
+            host: 'https://d.apicloud.com'
+        });
+        var query = api.require('query');
+        query.createQuery(function(ret, err) {
+
+            //注意如果要利用pointer类型的字段实现多表联合查询,需要用到include指明本次需要用到"Ticket"表中哪些pointer类型的字段
+            query.include({
+                qid: ret.qid,
+                column: 'ScheduleId'
+            });
+            query.whereEqual({
+                qid: ret.qid,
+                column: 'userId',
+                value: $api.getStorage('currentUser').userId
+            });
+            model.findAll({
+                class: 'Ticket',
+                qid: ret.qid
+            }, function(ret, err) {
+                if (ret.length>0) {
+                    var interationData = {
+                        "array": ret
+                    };
+                    //TicketArray储存了ret的值，用于在函数seeTicketDetail中使用(seeTicketDetail函数内部无法访问ret)
+                    TicketArray = ret;
+                    var interation = doT.template($api.dom('#interationTemp').innerHTML);
+                    $api.dom('#interation').innerHTML = interation(interationData);
+                } else {
+                  $api.dom('#interation').innerHTML = "暂无影票需要处理,快去买票吧(‵▽′)";
+                    //alert(JSON.stringify(err))
+                }
+            });
+        });
+    }
+
+    //查看影票详情，根据用户的点击确定"Ticket"表中的某一条数据，并将该条数据的name字段值送入ticket_detail页面
+    function seeTicketDetail(index) {
+        api.openWin({
+            name: 'detail',
+            url: '../detail/ticket_detail.html',
+            pageParam: TicketArray[index]
+        });
+    }
+</script>
+
+</html>

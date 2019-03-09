@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+  <html>
+  <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+      <title>title</title>
+      <link rel="stylesheet" href="css/new_file.css" />
+      <script type="text/javascript" src="js/jquery-1.8.2.min.js" ></script>
+      <script type="text/javascript" src="js/new_file.js" ></script>
+      <link rel="stylesheet" href="layer/mobile/need/layer.css" />
+      <script type="text/javascript" src="layer/mobile/layer.js" ></script>
+      <link rel="stylesheet" type="text/css" href="../../css/api.css"/>
+        <link rel="stylesheet" type="text/css" href="../../css/aui.css" />
+      <style>
+          body{
+
+          }
+      </style>
+  </head>
+  <body>
+		<!--头部  star-->
+    <header class="aui-bar aui-bar-nav" id="aui-header">
+        <a class="aui-btn aui-pull-left" tapmode onclick="closeWin()">
+            <span class="aui-iconfont aui-icon-left"></span>
+        </a>
+        <div class="aui-title">充值详情</div>
+        <a class="aui-btn aui-pull-right">
+            <span class="aui-iconfont aui-icon-plus"></span>
+        </a>
+    </header>
+		<!--头部 end-->
+		<div>
+			<img src="images/banner.png" width="100%" height="130%"/>
+		</div>
+    <div style="color:white;height:40px;width:100%"></div>
+		<!--充值列表-->
+		<div class="person_wallet_recharge"  >
+			<ul class="ul">
+                <li onclick="pay10()">
+                    <h2>￥10</h2>
+                    <div class="sel" style=""></div>
+                </li>
+                <li onclick="pay20()">
+                    <h2>￥20</h2>
+                    <div class="sel" style=""></div>
+                </li>
+                <li onclick="pay50()">
+                    <h2>￥50</h2>
+                    <div class="sel" style=""></div>
+                </li>
+                <li onclick="pay100()">
+                    <h2>￥100</h2>
+                    <div class="sel" style=""></div>
+                </li>
+                <li onclick="pay200()">
+                    <h2>￥200</h2>
+                    <div class="sel" style=""></div>
+                </li>
+                <li onclick="pay500()">
+                    <h2>￥500</h2>
+                    <div class="sel" style=""></div>
+                </li>
+                <li onclick="pay1000()">
+                   <h2>￥1000</h2>
+                    <div class="sel" style=""></div>
+                </li>
+                <li onclick="pay2000()">
+                   <h2>￥2000</h2>
+                    <div class="sel" style=""></div>
+                </li>
+                <li onclick="pay3000()">
+                   <h2>￥3000</h2>
+                    <div class="sel" style=""></div>
+                </li>
+                <div style="clear: both;"></div>
+            </ul>
+            <input type="text" class="pic" placeholder="金额必须为10元以上" id="zhifu" />
+            <div class="botton">我要充值</div>
+            <div class="agreement"><p>点击我要充值，即您已经表示同意<a>《充返活动协议》</a></p></div>
+
+           <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a>活动规则</a><sapn>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</sapn><a>充值历史</a><sapn>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</sapn><a>积分兑换</a></span>
+
+            <div class="f-overlay"></div>
+            <div class="addvideo" style="display: none;">
+              <h3>本次充值<span id="now"></span>元</h3>
+	            <ul>
+	            	<li onclick="pay()"><a>微信支付</a></li>
+	            	<li onclick="pay()"><a>支付宝支付</a></li>
+	            	<li class="cal">取消</li>
+	            </ul>
+            </div>
+		</div>
+	</body>
+  <script type="text/javascript" src="../../script/api.js"></script>
+  <script type="text/javascript">
+      apiready = function(){
+      };
+
+      function pay10()
+      {
+      $("#zhifu").val("10");
+      }
+      function pay20()
+      {
+      $("#zhifu").val("20");
+      }
+      function pay50()
+      {
+      $("#zhifu").val("50");
+      }
+      function pay100()
+      {
+      $("#zhifu").val("100");
+      }
+      function pay200()
+      {
+      $("#zhifu").val("200");
+      }
+      function pay500()
+      {
+      $("#zhifu").val("500");
+      }
+      function pay1000()
+      {
+      $("#zhifu").val("1000");
+      }
+      function pay2000()
+      {
+      $("#zhifu").val("2000");
+      }
+      function pay3000()
+      {
+      $("#zhifu").val("3000");
+      }
+
+      function pay() {
+          var model = api.require('model');
+          model.config({
+              appKey: 'FB02A2AA-D95A-6012-8918-0CBFF67EB6DD',
+              host: 'https://d.apicloud.com'
+          });
+          var query = api.require('query');
+          query.createQuery(
+              function(ret, err) {
+                  query.whereEqual({
+                      qid: ret.qid,
+                      column: 'id',
+                      value: $api.getStorage('currentUser').userId
+                  });
+                  model.findAll({
+                      class: 'user',
+                      qid: ret.qid
+                  }, function(ret, err) {
+                      if (ret) {
+                          var money = $("#zhifu").val();
+                          var money1 = ret[0].money;
+                          var money3 = parseInt(money1) + parseInt(money);
+
+                          var model = api.require('model');
+                          model.updateById({
+                              class: 'user',
+                              id: $api.getStorage('currentUser').userId,
+                              value: {
+                                  money: money3
+                              }
+                          }, function(ret, err) {
+                              if (ret) {
+                                  api.sendEvent({
+                                      name: 'userListenermoney'
+                                  });
+                                  api.closeFrame({});
+                              }
+                          });
+                      }
+                  });
+              });
+      };
+
+      function closeWin() {
+          api.closeFrame({});
+      };
+  </script>
+  </html>

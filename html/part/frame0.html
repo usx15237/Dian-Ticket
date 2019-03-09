@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>轻刻票栈</title>
+    <link rel="stylesheet" type="text/css" href="../../css/api.css" />
+    <link rel="stylesheet" type="text/css" href="../../css/style.css" />
+    <link rel="stylesheet" type="text/css" href="../../css/aui.css" />
+    <style>
+        .swipe {
+            overflow: hidden;
+            position: relative;
+        }
+
+        .swipe-wrap {
+            overflow: hidden;
+            position: relative;
+        }
+
+        .swipe-wrap .swipe-con {
+            float: left;
+            position: relative;
+        }
+
+        .swipe-wrap .swipe-con img {
+            width: 100%;
+            vertical-align: middle;
+        }
+        #searchText{
+          background-color: #CCFFCC;
+          border: 1px solid grey;
+          margin:3px 5px;
+          border-radius: 3px;
+          width: 80%;
+          height: 30px;
+          padding-left: 10px;
+          display: inline-block;
+        }
+        #searchButton{
+         background-color:#CCFF00;
+           border-radius: 3px;
+             width: 15%;
+             height: 30px;
+          display: inline-block;
+        }
+    </style>
+</head>
+
+<body>
+    <input type="text" id="searchText"><input type="button" value="搜索" onclick="updateMovielist()" id="searchButton">
+  <div class='swipe'>
+      <div class='swipe-wrap'>
+          <div class="swipe-con">
+              <img src="../../image/swipe/001.jpg" alt="" height="194px">
+          </div>
+          <div class="swipe-con">
+              <img src="../../image/swipe/002.jpg" alt=""height="194px">
+          </div>
+          <div class="swipe-con">
+              <img src="../../image/swipe/003.jpg" alt=""height="194px">
+          </div>
+          <div class="swipe-con">
+              <img src="../../image/swipe/004.jpg" alt=""height="194px">
+          </div>
+          <div class="swipe-con">
+              <img src="../../image/swipe/005.jpg" alt=""height="194px">
+          </div>
+      </div>
+  </div>
+
+
+
+    <script id="interationTemp" type="text/x-dot-template">
+        {{~it.array:value:index}}
+        <li class="aui-list-item aui-list-item-middle" onclick="goDetail({{= index}})">
+            <div class="aui-media-list-item-inner">
+                <div class="aui-list-item-media wechat-avatar">
+                    <div class="aui-badge">{{= value.statue}}</div>
+                    <div class="aui-row-padded">
+                        <div class="aui-col-xs-11">
+                            <img src="{{= value.imgUrl}}" />
+                        </div>
+                    </div>
+                </div>
+                <div class="aui-list-item-inner">
+                    <div class="aui-list-item-text">
+                        <div class="aui-list-item-title">{{= value.name}}</div>
+                        <div class="aui-list-item-right">评分:{{= value.score}}</div>
+                    </div>
+                    <div class="aui-list-item-text aui-font-size-12">
+                        {{= value.simple_introduce}}
+                    </div>
+                </div>
+            </div>
+        </li>
+        {{~}}
+    </script>
+    <div class="aui-content aui-margin-b-15">
+        <ul class="aui-list aui-media-list" id="interation">
+        </ul>
+    </div>
+</body>
+<script type="text/javascript" src="../../script/api.js"></script>
+<script type="text/javascript" src="../../script/doT.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+        fnInit();
+        updateMovielist();
+        RefreshInfo();
+        Setswipe();
+    }
+
+    //设置轮播图
+    function Setswipe(){
+      var mySwipe = new Swipe($api.dom('.swipe'), {
+          speed: 400,
+          auto: 3000,
+          continuous: true,
+          disableScroll: false,
+          stopPropagation: false,
+          transitionEnd: function(index, elem) {
+          }
+      });
+  }
+
+
+    function fnInit() {
+        arr = [];
+    }
+
+    //function的定义不要写在apiready里面,apiready里面只执行函数,不定义函数
+    //goDetail函数负责根据用户的点击确定"movie"表中的某一条数据，并将该条数据的name字段值送入movie_detail页面
+    function goDetail(index) {
+        api.openWin({
+            name: 'detail',
+            url: '../detail/movie_detail.html',
+            pageParam: {
+
+               //由于在updateMovielist函数中我们让arr储存了ret的值，因此arr[index]储存了"movie"表中的第index条数据
+                name: arr[index].name
+            }
+        });
+    }
+
+    function updateMovielist() {
+        //获取"movie"表中所有数据
+        var model = api.require('model');
+        model.config({
+            appKey: 'FB02A2AA-D95A-6012-8918-0CBFF67EB6DD',
+            host: 'https://d.apicloud.com'
+        });
+        model.findAll({
+            class: 'Movie',
+        }, function(ret, err) {
+
+            //如果找到数据
+            if (ret)
+            // {
+            //     for (var i = 0; i < ret.length; i++) {
+            //
+            //         //由于ret不可在函数updateMovielist外部访问，因此我们需要在这里利用变量arr接受它的值。
+            //         arr.push(ret[i]);
+            //
+            //         //数据加载完毕后，进行页面数据渲染
+            //         var interationData = {
+            //             "array": arr
+            //         };
+            //
+            //         //利用doT.js把获取到的数据嵌入html元素中
+            //         var interation = doT.template($api.dom('#interationTemp').innerHTML);
+            //         $api.dom('#interation').innerHTML = interation(interationData);
+            //     }
+            // }
+            {
+              while(arr.length>0)
+              arr.pop();
+                for (var i = 0; i < ret.length; i++) {
+                  if($api.byId('searchText').value=="")
+                        arr.push(ret[i]);
+                  else if(ret[i].category.indexOf($api.byId('searchText').value)>=0||
+                  ret[i].name.indexOf($api.byId('searchText').value)>=0||
+                  ret[i].simple_introduce.indexOf($api.byId('searchText').value)>=0||
+                    ret[i].simple_introduce.indexOf($api.byId('searchText').value)>=0
+                  )
+                    //由于ret不可在函数updateMovielist外部访问，因此我们需要在这里利用变量arr接受它的值。
+                    arr.push(ret[i]);
+
+                    //数据加载完毕后，进行页面数据渲染
+                    var interationData = {
+                        "array": arr
+                    };
+
+                    //利用doT.js把获取到的数据嵌入html元素中
+                    var interation = doT.template($api.dom('#interationTemp').innerHTML);
+                    $api.dom('#interation').innerHTML = interation(interationData);
+                }
+            }
+            else {
+                alert(JSON.stringify(err));
+            }
+        });
+    }
+
+    //下拉刷新功能
+    function RefreshInfo() {
+        //如果api写在apiready外面，会报错=>'undefined'
+        api.setRefreshHeaderInfo({
+            visible: true,
+            bgcolor: '#ccc',
+            textColor: '#fff',
+            textDown: '拉一下试试',
+            textUp: '试试就试试',
+            showTime: true
+        }, function(ret, err) {
+            //查询数据库
+            //渲染页面数据
+            alert('正在用力刷新');
+            api.refreshHeaderLoadDone();
+        })
+    }
+</script>
+
+</html>
+<script type="text/javascript" src="../../script/api.js"></script>
+<script type="text/javascript" src="../../script/swipe.js"></script>
